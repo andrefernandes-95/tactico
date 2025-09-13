@@ -1,6 +1,7 @@
 package io.tactico.resources;
 
 import io.tactico.entities.Team;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
