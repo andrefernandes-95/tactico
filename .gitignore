@@ -1,0 +1,25 @@
+# Node modules
+**/node_modules/
+
+# Bazel output
+bazel-*
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor files
+.vscode/
+.idea/
+*.iml
+
+# React build output
+**/build/
+**/dist/
+
+# Temporary files
+*.tmp
+*.swp
