@@ -1,6 +1,0 @@
-module(
-    name = "tactico",
-    version = "0.1.0",
-)
-
-bazel_dep(name = "aspect_rules_js", version = "2.5.0")

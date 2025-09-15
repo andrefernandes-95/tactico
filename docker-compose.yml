@@ -1,49 +1,64 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15
-    container_name: postgres
+  db_sporting:
+    image: postgres:16
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sporting
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infra/init-db:/docker-entrypoint-initdb.d
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:25.0.0
-    container_name: keycloak
-    command: start-dev --http-port=8180 --import-realm
+      - pgdata_sporting:/var/lib/postgresql/data
+  
+  db_benfica:
+    image: postgres:16
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      KC_DB_USERNAME: postgres
-      KC_DB_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: benfica
     ports:
-      - "8180:8180"
+      - "5434:5432"
+    volumes:
+      - pgdata_benfica:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: tactico-backend
+    restart: always
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL_SPORTING: postgres://postgres:password@db_sporting:5432/sporting
+      DATABASE_URL_BENFICA: postgres://postgres:password@db_benfica:5432/benfica
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     depends_on:
-      - postgres
-    volumes:
-      - ./infra/keycloak/myrealm.json:/opt/keycloak/data/import/myrealm.json
+      - db_sporting
+      - db_benfica
 
-  localstack:
-    image: localstack/localstack:latest
-    container_name: localstack
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: tactico-frontend
+    restart: always
     environment:
-      - SERVICES=s3,sqs,sns
-      - DEBUG=1
-      - DATA_DIR=/tmp/localstack/data
+      NEXT_PUBLIC_API_URL: http://localhost:4000
     ports:
-      - "4566:4566"   # main edge port for AWS SDK/CLI
-      - "4571:4571"
+      - "3000:3000"
     volumes:
-      - "./localstack:/tmp/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
 
 volumes:
-  postgres_data:
+  pgdata_sporting:
+  pgdata_benfica:
